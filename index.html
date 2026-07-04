@@ -1,49 +1,892 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday, Jaden</title>
+<meta name="description" content="A birthday gift for Jaden. Planted today, addressed to the future.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,600&family=Inter:wght@300;400;500;600&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Premium Dark Gold Palette */
+  --bg: #030303;
+  --surface: #0a0a0a;
+  --surface-elevated: #111111;
+  --surface-highlight: #1a1a1a;
+  --border: #222222;
+  
+  --text-main: #f5f5f5;
+  --text-muted: #888888;
+  
+  --gold: #D4AF37;
+  --gold-light: #F3E5AB;
+  --gold-dark: #997A00;
+  
+  --grad: linear-gradient(135deg, var(--gold-light), var(--gold));
+  --grad-subtle: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0));
+  
+  --font-display: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+  --font-letter: "Caveat", cursive;
+  
+  --radius: 12px;
+  --shadow: 0 10px 40px rgba(0,0,0,0.8);
+  --glow: 0 0 30px rgba(212, 175, 55, 0.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; background: var(--bg); }
+body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  color: var(--text-main);
+  background: var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: rgba(212, 175, 55, 0.3); color: #fff; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 1px solid var(--gold); outline-offset: 4px; }
+img, svg { max-width: 100%; }
+
+/* --- ENVELOPE / LETTER SEQUENCE --- */
+#envelope-scene {
+  position: fixed; inset: 0;
+  background: radial-gradient(circle at center, #1a1a1a, #000);
+  z-index: 9999; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 1s ease, visibility 1s ease;
+}
+#envelope-scene.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.instruction {
+  font-family: var(--font-body); font-size: 13px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 50px;
+  animation: pulse-text 2s infinite;
+}
+@keyframes pulse-text { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+.envelope-container {
+  position: relative; width: min(90vw, 420px); height: 280px;
+  cursor: pointer; perspective: 1200px;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.envelope-container:hover { transform: translateY(-5px); }
+
+.envelope-back {
+  position: absolute; inset: 0; background: #111;
+  border-radius: 4px; border: 1px solid #333; z-index: 1;
+}
+.envelope-letter {
+  position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+  background: #fbf8f1; border-radius: 2px; z-index: 2;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+.envelope-front {
+  position: absolute; inset: 0; z-index: 4;
+  background: linear-gradient(135deg, #1f1f1f, #151515);
+  border-radius: 4px; border: 1px solid #333;
+  clip-path: polygon(0 0, 100% 0, 50% 50%, 0 100%, 100% 100%, 0 0);
+}
+.envelope-flap {
+  position: absolute; top: 0; left: 0; width: 100%; height: 160px;
+  background: #252525; border: 1px solid #3a3a3a;
+  clip-path: polygon(0 0, 50% 100%, 100% 0);
+  transform-origin: top; z-index: 6;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.3s;
+}
+
+.envelope-container.open .envelope-flap { transform: rotateX(180deg); z-index: 1; }
+.envelope-container.open .envelope-letter { transform: translateY(-150px); z-index: 10; }
+
+#letter-fullscreen {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(15px); z-index: 10000;
+  display: flex; justify-content: center; align-items: center; padding: 20px;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.8s ease; overflow-y: auto;
+}
+#letter-fullscreen.visible { opacity: 1; visibility: visible; pointer-events: all; }
+
+.letter-paper {
+  background: #fbf8f1; color: #1c1c1c;
+  max-width: 700px; width: 100%; margin: auto;
+  padding: clamp(40px, 8vw, 80px);
+  border-radius: 2px; box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+  position: relative;
+  transform: scale(0.95) translateY(20px); transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+#letter-fullscreen.visible .letter-paper { transform: scale(1) translateY(0); }
+
+.letter-paper p {
+  font-family: var(--font-letter);
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1.5; margin-bottom: 24px;
+  color: #222; font-weight: 600;
+}
+.signature {
+  margin-top: 60px; font-family: var(--font-letter);
+  font-size: 32px; color: #111; text-align: right;
+}
+
+.action-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-body); font-weight: 500; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--bg); color: var(--gold); border: 1px solid var(--gold);
+  padding: 18px 36px; cursor: pointer; transition: all 0.3s ease;
+  width: 100%; margin-top: 30px;
+}
+.action-btn:hover { background: var(--gold); color: #000; }
+
+/* --- VIDEO MODAL SYSTEM --- */
+.video-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+  backdrop-filter: blur(20px); z-index: 10001;
+  display: flex; justify-content: center; align-items: center;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.video-modal-overlay.active { opacity: 1; visibility: visible; pointer-events: all; }
+.video-container {
+  width: 100%; max-width: 1000px; aspect-ratio: 16/9;
+  background: #000; border: 1px solid var(--border);
+  position: relative; box-shadow: var(--shadow);
+  transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.video-modal-overlay.active .video-container { transform: scale(1); }
 .close-video {
   position: absolute; top: -50px; right: 0; color: #fff;
   font-family: var(--font-body); font-size: 14px; letter-spacing: 0.1em;
   text-transform: uppercase; cursor: pointer; background: none; border: none;
 }
 .close-video:hover { color: var(--gold); }
-.video-fallback {
-  position: absolute; top: 15px; left: 15px; z-index: 10;
-  background: rgba(0,0,0,0.8); border: 1px solid var(--border); padding: 8px 12px;
-  border-radius: 4px; font-family: var(--font-body); font-size: 12px; color: var(--text-muted);
-}
-.video-fallback a { color: var(--gold); text-decoration: underline; margin-left: 4px; }
-.video-fallback a:hover { color: #fff; }
-iframe.yt-player { width: 100%; height: 100%; border: none; position: relative; z-index: 5; }
+iframe.yt-player { width: 100%; height: 100%; border: none; }
 
 /* --- MAIN LAYOUT & TYPOGRAPHY --- */
-<!-- ... existing code ... -->
-```
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+section { padding: 120px 0; border-bottom: 1px solid var(--border); }
+section:last-child { border-bottom: none; }
 
-```html:Jaden's Gift:index.html
-<!-- ... existing code ... -->
+h2 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(36px, 5vw, 56px); line-height: 1.1;
+  margin-bottom: 24px; color: #fff;
+}
+.lede { font-size: clamp(16px, 2vw, 20px); color: var(--text-muted); max-width: 660px; line-height: 1.7; }
+strong { color: var(--gold-light); font-weight: 500; }
+
+.pill-eyebrow {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-family: var(--font-body); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 30px;
+}
+.pill-eyebrow::before { content: ""; width: 30px; height: 1px; background: var(--gold); }
+
+/* --- NAV --- */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  background: rgba(3, 3, 3, 0.8); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+.brand { font-family: var(--font-display); font-weight: 600; font-size: 20px; color: #fff; letter-spacing: 0.05em; }
+
+/* --- HERO --- */
+.hero {
+  position: relative; min-height: 90vh; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding-top: 80px;
+  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.05), transparent 60%);
+}
+.hero-content { max-width: 900px; margin: 0 auto; }
+.hero h1 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(44px, 8vw, 84px); line-height: 1.05;
+  margin: 0 auto 30px; color: #fff;
+}
+.hero h1 i { font-style: italic; color: var(--gold); font-weight: 400; }
+.hero .lede { margin: 0 auto 50px; max-width: 600px; }
+.scroll-indicator {
+  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  font-family: var(--font-body); font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--text-muted); opacity: 0.7;
+}
+.scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--gold), transparent); animation: scrollLine 2s infinite; }
+@keyframes scrollLine { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 50.1% { transform: scaleY(1); transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+/* --- IMMERSIVE SCROLL SLIDESHOW (The Setup) --- */
+.setup-track {
+  height: 700vh; /* 7 steps */
+  position: relative;
+  background: var(--bg);
+}
+.setup-sticky {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border);
+}
+.setup-layout {
+  display: flex; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  height: 100%; align-items: center; gap: 60px;
+}
+.setup-visual { flex: 1.2; height: 70vh; position: relative; display: flex; align-items: center; justify-content: center; }
+.setup-text-container { flex: 1; position: relative; height: 60vh; }
+
+.scene {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: scale(0.95);
+  transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+.scene.active { opacity: 1; transform: scale(1); }
+.scene-graphic { width: 100%; max-width: 500px; height: auto; overflow: visible; }
+
+.step-card {
+  position: absolute; inset: 0; opacity: 0; transform: translateY(40px);
+  transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex; flex-direction: column; justify-content: center;
+  pointer-events: none;
+}
+.step-card.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.step-card-content {
+  background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px);
+  border: 1px solid var(--border); padding: 50px 40px; box-shadow: var(--shadow);
+}
+.step-card.active .step-card-content { border-color: rgba(212, 175, 55, 0.3); box-shadow: 0 20px 50px rgba(0,0,0,0.8), var(--glow); }
+.step-num { font-family: var(--font-body); font-size: 12px; color: var(--gold); letter-spacing: 0.2em; margin-bottom: 20px; display: block; text-transform: uppercase; }
+.step-card h3 { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 4vw, 38px); line-height: 1.15; margin-bottom: 16px; color: #fff; }
+.step-card p { font-size: clamp(16px, 2vw, 18px); color: var(--text-muted); line-height: 1.7; }
+.keep-scrolling-arrow {
+  margin-top: 30px; display: inline-flex; flex-direction: column; align-items: center; gap: 10px;
+  font-family: var(--font-body); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.2em; color: var(--gold); animation: floaty 2s infinite;
+}
+
+/* Literal Animations */
+.float { animation: floaty 4s ease-in-out infinite; }
+.pulse-glow { animation: p-glow 4s infinite; }
+.draw-line { animation: slide-flow 2s infinite linear; }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes p-glow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(212,175,55,0.2)); } 50% { filter: drop-shadow(0 0 25px rgba(212,175,55,0.6)); } }
+@keyframes slide-flow { 0% { stroke-dashoffset: 40; } 100% { stroke-dashoffset: 0; } }
+
+/* --- CALCULATOR --- */
+.calc-card {
+  margin-top: 60px; background: var(--surface); border: 1px solid var(--border);
+  padding: 50px; color: #fff; box-shadow: var(--shadow); position: relative;
+}
+.calc-card::after { content: ""; position: absolute; bottom: 0; right: 0; width: 500px; height: 500px; background: radial-gradient(circle, rgba(212,175,55,0.05), transparent 70%); pointer-events: none; }
+.calc-panel { display: grid; grid-template-columns: 350px 1fr; gap: 60px; align-items: start; position: relative; z-index: 2; }
+.controls { display: grid; gap: 32px; }
+.control label { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 500; margin-bottom: 16px; color: var(--text-main); letter-spacing: 0.05em; text-transform: uppercase; }
+.control output { font-family: var(--font-body); font-size: 16px; color: var(--gold); font-weight: 600; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 2px; background: #333; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--gold); border: 2px solid var(--surface); box-shadow: 0 0 10px rgba(212,175,55,0.5); transition: transform 0.1s ease; }
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.control .hint { font-size: 13px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; }
+
+.results { display: grid; gap: 24px; }
+.result-hero { border-left: 2px solid var(--gold); padding-left: 30px; }
+.result-hero .lab { font-family: var(--font-body); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+.result-hero .val { font-family: var(--font-display); font-weight: 600; font-size: clamp(48px, 7vw, 72px); color: var(--gold); line-height: 1.1; margin-top: 8px; text-shadow: var(--glow); }
+.result-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-left: 30px; }
+.mini { padding-top: 10px; border-top: 1px solid var(--border); }
+.mini .lab { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+.mini .val { font-family: var(--font-body); font-size: 24px; margin-top: 8px; color: #fff; font-weight: 300; }
+
+.chart-box { position: relative; margin-top: 20px; height: 200px; border-bottom: 1px solid var(--border); }
+#calcChart { width: 100%; height: 100%; display: block; }
+.tooltip { position: absolute; pointer-events: none; background: #fff; color: #000; font-family: var(--font-body); font-size: 12px; font-weight: 500; padding: 6px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); transform: translate(-50%, -150%); opacity: 0; transition: opacity 0.2s ease; z-index: 10; }
+.tooltip.on { opacity: 1; }
+
+/* --- FUTURE PURCHASES --- */
+.purchases-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 50px; }
+.buy-card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 40px 30px; text-align: center; transition: all 0.4s ease;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center;
+}
+.buy-card:hover { border-color: rgba(212, 175, 55, 0.4); transform: translateY(-5px); box-shadow: var(--shadow), var(--glow); }
+
+.buy-art { height: 120px; width: 100%; margin-bottom: 30px; position: relative; }
+.buy-card h3 { font-family: var(--font-display); font-weight: 600; font-size: 24px; margin-bottom: 12px; color: #fff; }
+.buy-card p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+.price-tag { margin-top: 20px; display: inline-block; font-family: var(--font-body); font-size: 13px; color: var(--gold); border: 1px solid rgba(212,175,55,0.3); padding: 6px 16px; border-radius: 99px; }
+
+/* --- FOOTER --- */
+footer { background: #020202; color: #fff; text-align: center; padding: 120px 24px 80px; border-top: 1px solid var(--border); }
+footer .big { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5vw, 48px); max-width: 700px; margin: 0 auto 30px; }
+footer .big .hl { color: var(--gold); font-style: italic; font-weight: 400; }
+footer .msg { color: var(--text-muted); max-width: 560px; margin: 0 auto 50px; font-size: 16px; }
+footer .legal { max-width: 800px; margin: 60px auto 0; font-size: 12px; line-height: 1.8; color: #555; border-top: 1px solid #111; padding-top: 40px; }
+
+@media (max-width: 860px) {
+  .calc-panel { grid-template-columns: 1fr; gap: 40px; }
+  .result-hero, .result-row { padding-left: 0; border-left: none; }
+}
+@media (max-width: 640px) {
+  section { padding: 80px 0; }
+  .setup-layout { flex-direction: column; gap: 20px; }
+  .setup-visual { height: 40vh; width: 100%; flex: none; }
+  .setup-text-container { height: 45vh; width: 100%; flex: none; }
+  .step-card-content { padding: 30px 24px; }
+  .calc-card { padding: 30px 20px; }
+  .envelope-container { width: 300px; height: 200px; }
+  .letter-paper { padding: 30px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= ENVELOPE / INTRO OVERLAY ======================= -->
+<div id="envelope-scene">
+  <div class="instruction">Tap envelope to open</div>
+  <div class="envelope-container" id="env-container" role="button" aria-label="Open your birthday letter">
+    <div class="envelope-back"></div>
+    <div class="envelope-letter" id="env-letter"></div>
+    <div class="envelope-front"></div>
+    <div class="envelope-flap"></div>
+  </div>
+</div>
+
+<div id="letter-fullscreen">
+  <div class="letter-paper" id="letter-paper">
+    <p>Dear Jaden,</p>
+    <p>Thank you for everything that you have done over the years. I've made many friends, but I have yet to meet many who I'm able to establish a connection like you and I have. You have seen it all and have been there for me through thick and thin, for the highs and the lows, and for the inevitable highs and lows of the future. Your reassurance in my decisions is something that you might not realize makes a large impact, but is definitely something that I care about.</p>
+    <p>I am forever indebted to you for your hand-holding of myself and Aaron at UCLA, as it truly changed the trajectory of my life forever. If it weren't for you, I don't think this past year would have been as remarkable as it has been, let alone this past decade would have been as transformative as it has been.</p>
+    <p>I look forward to seeing what the future holds for the both of us, as I know the journey that we have been idealizing, imagining, and preparing for is officially just beginning. I'm always rooting for you and anything that you do, and I'm always here to give an honest outlook when you need it, much like you do for me. I know some of my decisions at times might be erratic and the most questionable, but you're always there to check me, hold me accountable, and support me, even when it might not be the best move on the chessboard, which I am forever indebted to you for.</p>
+    <p>Thank you for being like the brother that I never had, and I look forward to seeing the continuous fruits of this gift be shown throughout your lifetime.</p>
+    <div class="signature">DILLON KHOUBIAN</div>
+    
+    <button class="action-btn" id="open-intro-video">View the gift</button>
+  </div>
+</div>
+
 <!-- ======================= GLOBAL VIDEO MODAL ======================= -->
 <div class="video-modal-overlay" id="video-modal">
   <div class="video-container">
     <button class="close-video" id="close-video">Close Video [ X ]</button>
-    <div class="video-fallback">
-      Having trouble viewing? <a href="https://youtu.be/3PQ74GT8-yY" target="_blank" rel="noopener">Watch on YouTube</a>
-    </div>
-    <iframe id="video-frame" class="yt-player" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <iframe id="video-frame" class="yt-player" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </div>
 </div>
 
 <!-- ======================= NAV & HERO ======================= -->
-<!-- ... existing code ... -->
-```
+<nav class="nav">
+  <div class="wrap">
+    <div class="brand">Jaden's Fund</div>
+  </div>
+</nav>
 
-```html:Jaden's Gift:index.html
-<!-- ... existing code ... -->
+<header class="hero" id="top">
+  <div class="wrap hero-content">
+    <span class="pill-eyebrow">A Birthday Gift est. July 2026</span>
+    <h1>Happy Birthday, Jaden. Thank you <i>for everything.</i></h1>
+    <p class="lede">This gift isn't for right now. It is for way later down the line. It is a $200 seed planted today, addressed directly to the 65 year old you.</p>
+    
+    <div class="scroll-indicator">
+      <span>Scroll to begin</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ======================= IMMERSIVE SCROLL SLIDESHOW ======================= -->
+<section class="setup-track" id="setup">
+  <div class="setup-sticky">
+    <div class="setup-layout">
+      
+      <!-- Visuals Canvas -->
+      <div class="setup-visual">
+        
+        <!-- Scene 0: $200 Cash -->
+        <div class="scene" id="scene-0">
+          <svg viewBox="0 0 400 400" class="scene-graphic">
+            <g class="float pulse-glow">
+              <rect x="60" y="140" width="280" height="120" rx="4" fill="#0A0A0A" stroke="var(--gold)" stroke-width="2"/>
+              <rect x="70" y="150" width="260" height="100" fill="none" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4 4"/>
+              <circle cx="200" cy="200" r="30" fill="none" stroke="var(--gold)" stroke-width="2"/>
+              <text x="80" y="175" font-family="var(--font-body)" font-size="16" fill="var(--gold)">200</text>
+              <text x="290" y="240" font-family="var(--font-body)" font-size="16" fill="var(--gold)">200</text>
+              <text x="200" y="205" font-family="var(--font-display)" font-size="20" fill="var(--gold)" text-anchor="middle">SEED</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Scene 1: Roth IRA Vault -->
+        <div class="scene" id="scene-1">
+          <svg viewBox="0 0 400 400" class="scene-graphic">
+            <circle cx="200" cy="200" r="120" fill="#050505" stroke="#333" stroke-width="4"/>
+            <circle cx="200" cy="200" r="100" fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="10 10" class="float"/>
+            <g transform="translate(200, 200)">
+              <rect x="-30" y="-30" width="60" height="70" rx="4" fill="#111" stroke="var(--gold)" stroke-width="2"/>
+              <path d="M -15 -30 C -15 -50, 15 -50, 15 -30" fill="none" stroke="var(--gold)" stroke-width="4"/>
+              <circle cx="0" cy="5" r="8" fill="var(--gold)"/>
+              <path d="M 0 5 L 0 20" stroke="var(--gold)" stroke-width="3"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Scene 2: Robinhood App -->
+        <div class="scene" id="scene-2">
+          <svg viewBox="0 0 400 400" class="scene-graphic">
+            <g class="float">
+              <rect x="130" y="60" width="140" height="280" rx="20" fill="#050505" stroke="#333" stroke-width="3"/>
+              <rect x="150" y="100" width="100" height="20" rx="4" fill="#111"/>
+              <rect x="150" y="140" width="100" height="60" rx="4" fill="var(--gold)" fill-opacity="0.1" stroke="var(--gold)" stroke-width="1"/>
+              <circle cx="200" cy="170" r="15" fill="var(--gold)"/>
+              <path d="M 195 170 L 200 175 L 208 165" fill="none" stroke="#000" stroke-width="2"/>
+              <rect x="150" y="220" width="100" height="20" rx="4" fill="#111"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Scene 3: Open Account -->
+        <div class="scene" id="scene-3">
+          <svg viewBox="0 0 400 400" class="scene-graphic">
+            <rect x="80" y="80" width="240" height="240" rx="12" fill="#0A0A0A" stroke="#222" stroke-width="2"/>
+            <text x="200" y="130" font-family="var(--font-body)" font-size="14" fill="#666" text-anchor="middle" letter-spacing="2">ACCOUNT TYPE</text>
+            <rect x="100" y="160" width="200" height="40" rx="4" fill="#111" stroke="#333" stroke-width="1"/>
+            <g class="pulse-glow">
+              <rect x="100" y="220" width="200" height="40" rx="4" fill="rgba(212,175,55,0.1)" stroke="var(--gold)" stroke-width="2"/>
+              <text x="200" y="245" font-family="var(--font-display)" font-size="16" fill="var(--gold)" text-anchor="middle">ROTH IRA</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Scene 4: Transfer -->
+        <div class="scene" id="scene-4">
+          <svg viewBox="0 0 400 400" class="scene-graphic">
+            <rect x="60" y="160" width="80" height="80" rx="8" fill="#111" stroke="#333" stroke-width="2"/>
+            <text x="100" y="205" font-family="var(--font-body)" font-size="12" fill="#666" text-anchor="middle">BANK</text>
+            
+            <rect x="260" y="160" width="80" height="80" rx="8" fill="#111" stroke="#333" stroke-width="2"/>
+            <text x="300" y="205" font-family="var(--font-body)" font-size="12" fill="#666" text-anchor="middle">FUND</text>
+            
+            <path d="M 150 200 L 250 200" fill="none" stroke="#333" stroke-width="2"/>
+            <path d="M 150 200 L 250 200" fill="none" stroke="var(--gold)" stroke-width="4" stroke-dasharray="10 10" class="draw-line"/>
+            
+            <circle cx="200" cy="150" r="20" fill="#0A0A0A" stroke="var(--gold)" stroke-width="2" class="float pulse-glow"/>
+            <text x="200" y="154" font-family="var(--font-body)" font-size="10" fill="var(--gold)" text-anchor="middle">+1%</text>
+          </svg>
+        </div>
+
+        <!-- Scene 5: Market -->
+        <div class="scene" id="scene-5">
+          <svg viewBox="0 0 400 400" class="scene-graphic">
+            <path d="M 50 300 L 120 250 L 180 270 L 260 160 L 320 180 L 380 80" fill="none" stroke="var(--gold)" stroke-width="4" class="pulse-glow"/>
+            <circle cx="380" cy="80" r="6" fill="#fff"/>
+            <rect x="280" y="40" width="80" height="30" rx="4" fill="#111" stroke="var(--gold)" stroke-width="1"/>
+            <text x="320" y="60" font-family="var(--font-body)" font-size="14" fill="var(--gold)" text-anchor="middle">VOO</text>
+          </svg>
+        </div>
+
+        <!-- Scene 6: Complete -->
+        <div class="scene" id="scene-6">
+          <svg viewBox="0 0 400 400" class="scene-graphic">
+            <circle cx="200" cy="200" r="100" fill="none" stroke="var(--gold)" stroke-width="2" class="pulse-glow"/>
+            <path d="M 160 200 L 190 230 L 250 160" fill="none" stroke="var(--gold)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+      </div>
+
+      <!-- Text Cards -->
+      <div class="setup-text-container">
+        
+        <div class="step-card active">
+          <div class="step-card-content">
+            <span class="step-num">Step I</span>
+            <h3>The Initial Capital</h3>
+            <p>You received $200. It is not for spending today. It is for planting. You are about to place it somewhere it will grow entirely on its own for the next four decades.</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-content">
+            <span class="step-num">Step II</span>
+            <h3>The Vault</h3>
+            <p>It will live in a Roth IRA. This is a specialized account where investments grow tax-free, forever. You put taxed money in once, and the IRS never gets to touch it again.</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-content">
+            <span class="step-num">Step III</span>
+            <h3>The Platform</h3>
+            <p>Download Robinhood and create a free account. They will verify your identity securely, just like any standard financial institution.</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-content">
+            <span class="step-num">Step IV</span>
+            <h3>The Designation</h3>
+            <p>In the application, navigate to Retirement, select Get Started, and choose Roth IRA. Be sure to select "I will pick my own investments".</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-content">
+            <span class="step-num">Step V</span>
+            <h3>The Transfer</h3>
+            <p>Link your banking institution and transfer the $200 in. The platform instantly adds an additional 1% free match on every deposit.</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-content">
+            <span class="step-num">Step VI</span>
+            <h3>The Engine</h3>
+            <p>Search for VOO, tap Buy, enter $200, and complete the order. Cash sitting idle does not grow. The index fund holding the top 500 US companies does.</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-card-content">
+            <span class="step-num">Complete</span>
+            <h3>The Future</h3>
+            <p>Ten minutes of setup today. A lifetime of potential in the future.</p>
+            <div class="keep-scrolling-arrow">
+              <span>Keep scrolling for projections</span>
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ======================= CALCULATOR ======================= -->
+<section id="calculator">
+  <div class="wrap">
+    <span class="pill-eyebrow">Financial Projections</span>
+    <h2>The Geometry of Wealth</h2>
+    <p class="lede">The initial $200 is merely the seed. The true story is dictated by what you choose to add monthly. Adjust the parameters below to visualize the compounding effect.</p>
+
+    <div class="calc-card">
+      <div class="calc-panel">
+        <div class="controls">
+          <div class="control">
+            <label for="inMonthly">Monthly Addition <output id="outMonthly">$50</output></label>
+            <input type="range" id="inMonthly" min="0" max="500" step="25" value="50">
+            <p class="hint">Even a minimal monthly contribution drastically alters the trajectory.</p>
+          </div>
+          <div class="control">
+            <label for="inReturn">Annual Return <output id="outReturn">10%</output></label>
+            <input type="range" id="inReturn" min="4" max="12" step="0.5" value="10">
+            <p class="hint">The historical average of the S&P 500 is approximately 10%.</p>
+          </div>
+          <div class="control">
+            <label for="inAge">Withdrawal Age <output id="outAge">65</output></label>
+            <input type="range" id="inAge" min="55" max="70" step="1" value="65">
+            <p class="hint">Age 59.5 is the legal threshold for penalty-free access.</p>
+          </div>
+        </div>
+
+        <div class="results">
+          <div class="result-hero">
+            <p class="lab">Projected Balance at Age <span id="labAge">65</span></p>
+            <p class="val" id="outTotal" aria-live="polite">$0</p>
+          </div>
+          <div class="result-row">
+            <div class="mini"><p class="lab">Principal Deposited</p><p class="val" id="outIn">$0</p></div>
+            <div class="mini"><p class="lab">Compound Growth</p><p class="val" id="outGrow">$0</p></div>
+          </div>
+          <div class="chart-box">
+            <svg id="calcChart" viewBox="0 0 720 200" preserveAspectRatio="none"></svg>
+            <div class="tooltip" id="tip"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= FUTURE PURCHASES ======================= -->
+<section id="future-purchases">
+  <div class="wrap">
+    <span class="pill-eyebrow">The Catalog of 2069</span>
+    <h2>Fruits of Your Labor</h2>
+    <p class="lede">Based on the compounding mathematical projections, the future holds immense tax-free purchasing power. Here is a curated selection of acquisitions you will be positioned to make.</p>
+    
+    <div class="purchases-grid">
+      
+      <!-- Item 1: Porsche 911 -->
+      <div class="buy-card">
+        <div class="buy-art">
+          <svg viewBox="0 0 240 100" width="100%" height="100%" stroke="var(--text-muted)" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Body Silhouette -->
+            <path d="M 30 75 L 25 65 C 25 55, 35 50, 50 48 L 85 30 C 105 20, 130 20, 150 35 C 175 50, 200 55, 210 65 L 215 75 Z" />
+            <!-- Wheels -->
+            <circle cx="65" cy="75" r="16" />
+            <circle cx="175" cy="75" r="16" />
+            <!-- Inner rims -->
+            <circle cx="65" cy="75" r="6" />
+            <circle cx="175" cy="75" r="6" />
+            <!-- Side Window -->
+            <path d="M 85 30 C 105 20, 125 20, 145 32 C 155 38, 160 45, 160 50 L 95 50 Z" />
+            <!-- Aggressive GT3 RS Swan-Neck Wing -->
+            <!-- Struts -->
+            <path d="M 180 50 L 185 20 M 195 53 L 200 20" stroke-width="2" />
+            <!-- Main Wing Blade -->
+            <path d="M 170 20 C 190 18, 210 15, 225 18" stroke-width="3" />
+            <!-- Wing Endplate -->
+            <path d="M 220 10 L 225 30" stroke-width="2.5" />
+            <!-- Front Splitter & Vents -->
+            <path d="M 30 70 L 18 73 L 18 78 L 30 75" fill="var(--text-muted)" stroke="none" />
+            <!-- Hood vent detail -->
+            <path d="M 55 47 L 65 47" stroke-width="2" />
+          </svg>
+        </div>
+        <h3>Porsche 911 GT3 RS</h3>
+        <p>A precision track instrument for the road. The pinnacle of naturally aspirated engineering.</p>
+        <div class="price-tag">Est. $250,000+</div>
+      </div>
+
+      <!-- Item 2: Rolex Daytona -->
+      <div class="buy-card">
+        <div class="buy-art">
+          <svg viewBox="0 0 200 100" width="100%" height="100%" stroke="var(--text-muted)" fill="none" stroke-width="1.5">
+            <circle cx="100" cy="50" r="30" />
+            <circle cx="100" cy="50" r="26" stroke-width="1" stroke-dasharray="2 4" />
+            <!-- Chronograph dials -->
+            <circle cx="90" cy="50" r="6" />
+            <circle cx="110" cy="50" r="6" />
+            <circle cx="100" cy="62" r="6" />
+            <!-- Hands -->
+            <path d="M 100 50 L 100 32" stroke-width="2" />
+            <path d="M 100 50 L 112 40" stroke-width="2" />
+            <!-- Strap -->
+            <path d="M 85 20 L 85 0 M 115 20 L 115 0" />
+            <path d="M 85 80 L 85 100 M 115 80 L 115 100" />
+          </svg>
+        </div>
+        <h3>Rolex Cosmograph Daytona</h3>
+        <p>The ultimate tool watch for those with a passion for driving and speed. A timeless asset.</p>
+        <div class="price-tag">Est. $35,000+</div>
+      </div>
+
+      <!-- Item 3: Global Travel -->
+      <div class="buy-card">
+        <div class="buy-art">
+          <svg viewBox="0 0 200 100" width="100%" height="100%" stroke="var(--text-muted)" fill="none" stroke-width="1.5">
+            <!-- Globe -->
+            <circle cx="100" cy="50" r="30" />
+            <ellipse cx="100" cy="50" rx="15" ry="30" />
+            <path d="M 70 50 L 130 50" />
+            <path d="M 75 35 L 125 35 M 75 65 L 125 65" />
+            <!-- Plane path -->
+            <path d="M 40 70 C 50 20, 150 20, 170 50" stroke="var(--gold)" stroke-width="2" stroke-dasharray="4 4" />
+            <path d="M 165 45 L 170 50 L 160 55" stroke="var(--gold)" stroke-width="2" />
+          </svg>
+        </div>
+        <h3>Unrestricted Time</h3>
+        <p>Complete financial independence. The ability to travel globally without consulting a calendar or a budget.</p>
+        <div class="price-tag">Priceless</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ======================= FOOTER ======================= -->
+<footer>
+  <p class="big">The best gifts take <span class="hl">four decades</span> to open.</p>
+  <p class="msg">This is the most unassuming present you will receive this year. But if left untouched, it will be the most significant one anyone has ever given you.</p>
+  <a class="action-btn" style="max-width: 300px; display: inline-block; margin: 0 auto;" href="https://robinhood.com/us/en/about/retirement/" target="_blank" rel="noopener">Make it official</a>
+  <p class="legal">This document is a birthday gift and an educational illustration, not certified financial, tax, or investment advice. Projections use the S&amp;P 500's historical average (approximately 10% annually, before inflation). Past performance does not guarantee future results. Figures compound monthly and exclude platform fees. Ensure you research current tax rules and limits for Roth IRAs prior to investing.</p>
+</footer>
+
+<script>
+(function(){
+  document.documentElement.classList.add('js');
+
+  /* ========== ENVELOPE & INTRO VIDEO LOGIC ========== */
+  const envScene = document.getElementById('envelope-scene');
+  const envContainer = document.getElementById('env-container');
+  const letterScreen = document.getElementById('letter-fullscreen');
+  const introBtn = document.getElementById('open-intro-video');
+  const videoModal = document.getElementById('video-modal');
+  const videoFrame = document.getElementById('video-frame');
+  const closeVideoBtn = document.getElementById('close-video');
+
+  // 1. Open Envelope
+  envContainer.addEventListener('click', function() {
+    if(envContainer.classList.contains('open')) return;
+    envContainer.classList.add('open');
+    setTimeout(function() {
+      letterScreen.classList.add('visible');
+      setTimeout(function() { envScene.classList.add('hidden'); }, 500);
+    }, 900);
+  });
+
   // 2. Click "View the gift" on letter -> Opens Intro Video
   introBtn.addEventListener('click', function() {
     letterScreen.classList.remove('visible');
-    // Using a standard general YouTube embed link with simplified parameters
-    videoFrame.src = "https://www.youtube.com/embed/3PQ74GT8-yY?autoplay=1&rel=0"; 
+    // Using a standard general YouTube embed link
+    videoFrame.src = "https://www.youtube.com/embed/3PQ74GT8-yY?autoplay=1"; 
     videoModal.classList.add('active');
   });
 
   // 3. Close Video Modal -> Reveals Main Site
-<!-- ... existing code ... -->
+  closeVideoBtn.addEventListener('click', function() {
+    videoModal.classList.remove('active');
+    videoFrame.src = ""; // Stop playing
+    document.body.style.overflow = 'auto'; // Allow scrolling site
+  });
+  
+  // Lock scrolling initially
+  document.body.style.overflow = 'hidden';
+
+  /* ========== SCROLLYTELLING SLIDESHOW LOGIC ========== */
+  const track = document.querySelector('.setup-track');
+  const cards = document.querySelectorAll('.step-card');
+  const scenes = document.querySelectorAll('.scene');
+  
+  function updateScrollTrack() {
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const trackHeight = rect.height - window.innerHeight;
+    
+    // Calculate progress from 0 to 1
+    let progress = -rect.top / trackHeight;
+    if (progress < 0) progress = 0;
+    if (progress > 1) progress = 1;
+    
+    const totalSteps = cards.length;
+    let currentStep = Math.floor(progress * totalSteps);
+    if (currentStep >= totalSteps) currentStep = totalSteps - 1;
+    
+    cards.forEach((c, i) => {
+      if (i === currentStep) c.classList.add('active');
+      else c.classList.remove('active');
+    });
+    
+    scenes.forEach((s, i) => {
+      if (i === currentStep) s.classList.add('active');
+      else s.classList.remove('active');
+    });
+  }
+  
+  window.addEventListener('scroll', updateScrollTrack);
+  window.addEventListener('resize', updateScrollTrack);
+  updateScrollTrack(); // Init
+
+  /* ========== MONEY MATH ========== */
+  const START_AGE = 22;
+  function monthlyRate(annualPct){ return Math.pow(1 + annualPct/100, 1/12) - 1; }
+
+  function buildSeries(seed, monthly, annualPct, endAge){
+    const r = monthlyRate(annualPct);
+    const pts = [{age:START_AGE, bal:seed}];
+    let bal = seed;
+    const months = (endAge - START_AGE) * 12;
+    for(let m = 1; m <= months; m++){
+      bal = bal * (1 + r) + monthly;
+      if(m % 12 === 0) pts.push({age: START_AGE + m/12, bal: bal});
+    }
+    return pts;
+  }
+
+  const fmtFull = new Intl.NumberFormat('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0});
+  function money(v){
+    if(v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+    return fmtFull.format(v);
+  }
+
+  /* ========== SVG CHART ========== */
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name, attrs, parent){
+    const node = document.createElementNS(SVGNS, name);
+    for(let k in attrs) node.setAttribute(k, attrs[k]);
+    if(parent) parent.appendChild(node);
+    return node;
+  }
+
+  function drawChart(svg, series){
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    const vb = svg.viewBox.baseVal;
+    const W = vb.width, H = vb.height;
+    
+    let maxBal = 0;
+    for(let i=0;i<series.length;i++) if(series[i].bal > maxBal) maxBal = series[i].bal;
+    const yMax = maxBal * 1.05;
+    const x0 = series[0].age, x1 = series[series.length-1].age;
+    
+    function X(age){ return ((age - x0) / (x1 - x0)) * W; }
+    function Y(bal){ return H - (bal / yMax) * H; }
+
+    const defs = el('defs', {}, svg);
+    const grad = el('linearGradient', {id:'gradFill', x1:0, y1:0, x2:0, y2:1}, defs);
+    el('stop', {offset:'0%', 'stop-color':'#D4AF37', 'stop-opacity':0.3}, grad);
+    el('stop', {offset:'100%', 'stop-color':'#D4AF37', 'stop-opacity':0}, grad);
+
+    let dLine = '';
+    for(let j=0;j<series.length;j++){
+      dLine += (j===0 ? 'M' : 'L') + X(series[j].age).toFixed(1) + ' ' + Y(series[j].bal).toFixed(1) + ' ';
+    }
+    const dArea = dLine + 'L' + X(x1).toFixed(1) + ' ' + H + ' L' + X(x0).toFixed(1) + ' ' + H + ' Z';
+    
+    el('path', {d:dArea, fill:'url(#gradFill)'}, svg);
+    el('path', {d:dLine, fill:'none', stroke:'#D4AF37', 'stroke-width':2, 'stroke-linecap':'round'}, svg);
+    
+    return {X, Y, series, W, H};
+  }
+
+  /* ========== CALCULATOR UI ========== */
+  const inMonthly = document.getElementById('inMonthly');
+  const inReturn  = document.getElementById('inReturn');
+  const inAge     = document.getElementById('inAge');
+  const outMonthly= document.getElementById('outMonthly');
+  const outReturn = document.getElementById('outReturn');
+  const outAge    = document.getElementById('outAge');
+  const labAge    = document.getElementById('labAge');
+  const outTotal  = document.getElementById('outTotal');
+  const outIn     = document.getElementById('outIn');
+  const outGrow   = document.getElementById('outGrow');
+  const calcSvg   = document.getElementById('calcChart');
+  
+  function update(){
+    const monthly = +inMonthly.value;
+    const pct     = +inReturn.value;
+    const endAge  = +inAge.value;
+
+    outMonthly.textContent = '$' + monthly;
+    outReturn.textContent  = pct + '%';
+    outAge.textContent     = endAge;
+    labAge.textContent     = endAge;
+
+    const series = buildSeries(200, monthly, pct, endAge);
+    const end = series[series.length-1].bal;
+    const contributed = 200 + monthly * (endAge - START_AGE) * 12;
+
+    outTotal.textContent = money(end);
+    outIn.textContent   = money(contributed);
+    outGrow.textContent = money(Math.max(0, end - contributed));
+
+    drawChart(calcSvg, series);
+  }
+
+  [inMonthly, inReturn, inAge].forEach(inp => inp.addEventListener('input', update));
+  update();
+  
+  window.addEventListener('resize', update);
+
+})();
+</script>
+</body>
+</html>
